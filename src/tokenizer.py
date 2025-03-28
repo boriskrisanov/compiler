@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+import re
 
 class TokenKind(Enum):
     KEYWORD_LET = 1
@@ -14,30 +15,35 @@ class Token:
     kind: TokenKind
     value: Any = None
 
+@dataclass
+class TokenMatch:
+    token: Token
+    start: int
+
+let_regex = re.compile(r"let(?!(\\w)+)")
+
+# def lookahead(str, pos, lookahead):
+#     return str[pos + lookahead] if pos + lookahead < len(str) else ""
+
+def match_tokens(regex: str, string: str, token_kind: TokenKind) -> list[TokenMatch]: 
+    token_matches: list[TokenMatch] = []
+
+    match = re.search(let_regex, string)
+    while match is not None:
+        token = Token(token_kind)
+        token_matches.append(TokenMatch(token, match.start))
+        string = string[:match.start()] + string[(match.end() + 1):]
+
+        match = re.search(let_regex, string)
+
+    return token_matches
+
 def tokenize(string: str) -> list[Token]:
-    tokens: list[Token] = []
-    buffer = ""
+    token_matches: list[TokenMatch] = []
 
-    for c in string:
-        if c in [" ", "=", "\n"]:
-            # Keywords and literals
-            if buffer == "let":
-                tokens.append(Token(TokenKind.KEYWORD_LET))
-                buffer = ""
-            elif buffer != "":
-                if buffer.isnumeric():
-                    tokens.append(Token(TokenKind.INTEGER_LITERAL, int(buffer)))
-                else:
-                    tokens.append(Token(TokenKind.IDENTIFIER, buffer))
-                buffer = ""
+    token_matches += match_tokens(let_regex, string, TokenKind.KEYWORD_LET)
 
-        if c != " ":
-            buffer += c
-
-        if buffer == "=":
-            tokens.append(Token(TokenKind.ASSIGNMENT_OPERATOR))
-            buffer = ""
-        
+    tokens = list(map(lambda t: t.token, token_matches))
     tokens.append(Token(TokenKind.EOF))
 
     return tokens
