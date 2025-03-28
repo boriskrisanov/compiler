@@ -1,16 +1,18 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import Any
 
 class TokenKind(Enum):
     KEYWORD_LET = 1
     ASSIGNMENT_OPERATOR = 2
     INTEGER_LITERAL = 3
     IDENTIFIER = 4
+    EOF = 5
 
 @dataclass
 class Token:
     kind: TokenKind
-    value: any = None
+    value: Any = None
 
 def tokenize(string: str) -> list[Token]:
     tokens: list[Token] = []
@@ -36,5 +38,6 @@ def tokenize(string: str) -> list[Token]:
             tokens.append(Token(TokenKind.ASSIGNMENT_OPERATOR))
             buffer = ""
         
+    tokens.append(Token(TokenKind.EOF))
 
     return tokens
