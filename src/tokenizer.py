@@ -14,7 +14,7 @@ class TokenKind(Enum):
     OPEN_BRACE = 8
     CLOSE_BRACE = 9
     OPEN_ANGLE_BRACKET = 10
-    NEWLINE = 254
+    SEMICOLON = 254
     EOF = 255
 
 @dataclass
@@ -68,8 +68,12 @@ def tokenize(string: str) -> list[Token]:
 
     while len(string) > 0:
         if string.startswith("\n"):
-            tokens.append(Token(TokenKind.NEWLINE))
             string = string[1:]
+            continue
+
+        if string.startswith(";"):
+            string = string[1:]
+            tokens.append(Token(TokenKind.SEMICOLON))
             continue
         
         match = False
