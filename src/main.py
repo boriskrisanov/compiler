@@ -3,6 +3,8 @@ from tokenizer import tokenize
 
 src = """let x = 1
 x = x + 1
+let y = 2
+y = y + 2
 
 """
 
