@@ -18,43 +18,49 @@ class Token:
     def __repr__(self):
         return str(self.kind) if self.value is None else f"{str(self.kind)}({str(self.value)})"
 
-@dataclass
-class TokenMatch:
-    token: Token
-    start: int
-
-    def __gt__(self, other):
-        return self.start > other.start
-    
-    def __eq__(self, other):
-        return self.start == other.start
-
-let_regex = re.compile(r"let(?!(\\w)+)")
+let_regex = re.compile(r"let(?!\\w)")
 equals_regex = re.compile(r"=")
-
-def match_tokens(regex: str, string: str, token_kind: TokenKind) -> list[TokenMatch]: 
-    token_matches: list[TokenMatch] = []
-
-    match = re.search(regex, string)
-    while match is not None:
-        token = Token(token_kind)
-        token_matches.append(TokenMatch(token, match.start()))
-        string = string[:match.start()] + string[(match.end() + 1):]
-
-        match = re.search(let_regex, string)
-
-    return token_matches
+identifier_regex = re.compile(r"[^\\d]?[Aa-zZ]([Aa-zZ]|[0-9]*)(?!\\w)")
+integer_literal_regex = re.compile(r"\d+")
 
 def tokenize(string: str) -> list[Token]:
-    token_matches: list[TokenMatch] = []
+    tokens: list[Token] = []
 
-    token_matches += match_tokens(let_regex, string, TokenKind.KEYWORD_LET)
-    token_matches += match_tokens(equals_regex, string, TokenKind.ASSIGNMENT_OPERATOR)
+    while len(string) > 0:
+        let_match = re.search(let_regex, string)
+        if let_match is not None and let_match.start() == 0:
+            tokens.append(Token(TokenKind.KEYWORD_LET))
+            string = string[(let_match.end() + 1):]
+            string.lstrip()
+            continue
 
-    print(token_matches)
+        equals_match = re.search(equals_regex, string)
+        if equals_match is not None and equals_match.start() == 0:
+            tokens.append(Token(TokenKind.ASSIGNMENT_OPERATOR))
+            string = string[(equals_match.end() + 1):]
+            string.lstrip()
+            continue
 
-    token_matches.sort(reverse=True)
-    tokens = list(map(lambda t: t.token, token_matches))
+        # Did not match anything, assume identifier or literal
+        identifier_match = re.search(identifier_regex, string)
+        if identifier_match is not None and identifier_match.start() == 0:
+            tokens.append(Token(TokenKind.IDENTIFIER, str(string[0:identifier_match.end()])))
+            string = string[(identifier_match.end() + 1):]
+            string.lstrip()
+            continue
+        
+        integer_literal_match = re.search(integer_literal_regex, string)
+        if integer_literal_match is not None and integer_literal_match.start() == 0:
+            tokens.append(Token(TokenKind.INTEGER_LITERAL, int(string[0:integer_literal_match.end()])))
+            string = string[(integer_literal_match.end() + 1):]
+            string.lstrip()
+            continue
+
+        # Might be unreachable if properly implemented?
+        print("Failed to tokenize")
+        break
+
+
     tokens.append(Token(TokenKind.EOF))
 
     return tokens
