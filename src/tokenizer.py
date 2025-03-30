@@ -19,26 +19,31 @@ class Token:
         return str(self.kind) if self.value is None else f"{str(self.kind)}({str(self.value)})"
 
 let_regex = re.compile(r"let(?!\\w)")
+if_regex = re.compile(r"if(?!\\w)")
 equals_regex = re.compile(r"=")
 identifier_regex = re.compile(r"[^\\d]?[Aa-zZ]([Aa-zZ]|[0-9]*)(?!\\w)")
 integer_literal_regex = re.compile(r"\d+")
+
+def match_token(regex, string: str, tokens: list[Token], token_kind: TokenKind) -> tuple[str, bool]:
+    match = re.search(regex, string)
+    if match is not None and match.start() == 0:
+        tokens.append(Token(token_kind))
+        string = string[(match.end() + 1):]
+        string.lstrip()
+        return (string, True)
+    
+    return (string, False)
 
 def tokenize(string: str) -> list[Token]:
     tokens: list[Token] = []
 
     while len(string) > 0:
-        let_match = re.search(let_regex, string)
-        if let_match is not None and let_match.start() == 0:
-            tokens.append(Token(TokenKind.KEYWORD_LET))
-            string = string[(let_match.end() + 1):]
-            string.lstrip()
+        string, let_match = match_token(let_regex, string, tokens, TokenKind.KEYWORD_LET)
+        if let_match:
             continue
 
-        equals_match = re.search(equals_regex, string)
-        if equals_match is not None and equals_match.start() == 0:
-            tokens.append(Token(TokenKind.ASSIGNMENT_OPERATOR))
-            string = string[(equals_match.end() + 1):]
-            string.lstrip()
+        string, equals_match = match_token(equals_regex, string, tokens, TokenKind.ASSIGNMENT_OPERATOR)
+        if equals_match:
             continue
 
         # Did not match anything, assume identifier or literal
