@@ -3,8 +3,9 @@ from tokenizer import tokenize
 
 src = """let x = 1
 if (x > 0) {
-    x = x + 1
+x = 2
 }
+
 """
 
 print(tokenize(src))
