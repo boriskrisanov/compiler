@@ -87,7 +87,6 @@ def tokenize(string: str) -> list[Token]:
         # Did not match anything, assume identifier or literal
         identifier_match = re.search(identifier_regex, string)
         if identifier_match is not None and identifier_match.start() == 0:
-            print(identifier_match)
             tokens.append(Token(TokenKind.IDENTIFIER, str(string[0:identifier_match.end()])))
             string = string[(identifier_match.end()):]
             string = string.lstrip(" ")

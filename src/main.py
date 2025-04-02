@@ -8,5 +8,5 @@ x = 2;
 
 """
 
-print(tokenize(src))
-# print(parser.parse(tokenize(src)))
+# print(tokenize(src))
+print(parser.parse(tokenize(src)))
